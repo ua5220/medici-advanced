@@ -1,7 +1,7 @@
 # Lead Tracking Rules — Technical Reference
 
 **Версія:** 1.0.0
-**Дата:** 2025-12-15
+**Мета:** Універсальний довідник з UTM governance, lead stages та validation.
 
 ---
 
@@ -30,6 +30,8 @@
 | `direct` | Прямий трафік |
 | `referral` | Реферальний трафік |
 
+**❌ ЗАБОРОНЕНО:** `insta`, `fb`, `ig`, `Google`, `FACEBOOK`, `e-mail`
+
 ### utm_medium (Тип трафіку)
 
 **VALID VALUES:**
@@ -44,16 +46,44 @@
 | `story` | Stories |
 | `reel` | Reels/Shorts |
 | `bio` | Profile link |
+| `dm` | Direct message |
 | `email` | Email |
+| `referral` | Referral |
+
+**❌ ЗАБОРОНЕНО:** `paid`, `free`, `ads`, `social-media`
 
 ### utm_campaign (Кампанія)
 
 **Формат:** `{product}_{audience}_{goal}_{date}`
 
 **Examples:**
+
 ```
 smm_clinics_leads_2025q1
 branding_doctors_awareness_jan25
+seo_pharma_leads_2025-01
+```
+
+### utm_content (Варіант креативу)
+
+**Формат:** `{format}_{variant}_{cta}`
+
+**Examples:**
+
+```
+carousel_v1_book-call
+video_testimonial_learn-more
+static_case-study_contact
+```
+
+### utm_term (Keyword/Targeting)
+
+**Examples:**
+
+```
+medical+marketing
+smm+for+clinics
+pharmaceutical+advertising
 ```
 
 ---
@@ -72,11 +102,21 @@ branding_doctors_awareness_jan25
 | **CLOSED-WON** | Угода закрита |
 | **CLOSED-LOST** | Відмова |
 
+**CLOSED-LOST причини (обов'язково фіксувати!):**
+
+- `budget` - Недостатній бюджет
+- `timing` - Не зараз
+- `competitor` - Вибрав конкурента
+- `no_need` - Відпала потреба
+- `no_response` - Не відповідає
+- `spam` - Spam/fake
+- `duplicate` - Дублікат
+
 ---
 
 ## 📊 Атрибуція
 
-**Обрана модель:** First Touch + Last Touch
+**Рекомендована модель:** First Touch + Last Touch
 
 **Attribution Window:**
 
@@ -86,6 +126,27 @@ branding_doctors_awareness_jan25
 | Consultation | 60 днів |
 | Sale | 90 днів |
 
+**Storage:**
+
+```javascript
+// First Touch (зберігається назавжди)
+localStorage.setItem('first_touch', JSON.stringify({
+    source: 'instagram',
+    medium: 'cpc',
+    campaign: 'smm_clinics_leads_2025q1',
+    timestamp: '2025-01-15T10:30:00Z',
+}));
+
+// Last Touch (перезаписується)
+sessionStorage.setItem('last_touch', JSON.stringify({...}));
+```
+
+**Cross-device stitching:**
+
+1. **Anonymous:** Cookie ID + Device fingerprint
+2. **Known:** Email як primary key
+3. **Merge:** При заповненні форми з'єднуємо anonymous + known
+
 ---
 
 ## ✅ Валідація даних
@@ -94,16 +155,84 @@ branding_doctors_awareness_jan25
 
 ```javascript
 const VALIDATION_RULES = {
-	email: {
-		required: true,
-		pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-		blocklist: ['tempmail.com', 'guerrillamail.com'],
-	},
-	phone: {
-		required: true,
-		pattern: /^\+?380\d{9}$/, // Україна
-	},
+    email: {
+        required: true,
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        blocklist: ['tempmail.com', 'guerrillamail.com', '10minutemail.com'],
+        testPatterns: ['test@', 'demo@', 'example@'],
+    },
+    phone: {
+        required: true,
+        minDigits: 10,
+        pattern: /^\+?\d{10,15}$/,
+    },
+    name: {
+        required: true,
+        minLength: 2,
+        blocklist: ['test', 'asd', 'qwe', '123'],
+    },
 };
+```
+
+### Backend Validation
+
+```php
+const SPAM_INDICATORS = [
+    'too_fast' => 'Форма заповнена < 3 секунд',
+    'honeypot' => 'Honeypot field заповнено',
+    'suspicious_ip' => 'IP в blacklist або datacenter',
+    'repeat_submit' => 'Та сама email за останню годину',
+    'invalid_phone' => 'Телефон не існує (Twilio lookup)',
+];
+
+const QUALITY_SCORE = [
+    'has_phone' => +20,
+    'has_message' => +15,
+    'long_message' => +10,
+    'business_email' => +15,
+    'returning' => +10,
+    'read_blog' => +5,
+    'temp_email' => -50,
+    'suspicious' => -30,
+];
+```
+
+### UTM Валідація
+
+```php
+const VALID_SOURCES = [
+    'google', 'facebook', 'instagram', 'linkedin',
+    'telegram', 'email', 'direct', 'referral',
+];
+
+const VALID_MEDIUMS = [
+    'cpc', 'cpm', 'organic', 'social', 'post',
+    'story', 'reel', 'bio', 'dm', 'email', 'referral',
+];
+
+function validate_utm($utm_source, $utm_medium): array {
+    $source = strtolower(trim($utm_source));
+    $medium = strtolower(trim($utm_medium));
+    
+    // Auto-correct common mistakes
+    $source_fixes = [
+        'insta' => 'instagram',
+        'ig' => 'instagram',
+        'fb' => 'facebook',
+        'ln' => 'linkedin',
+        'tg' => 'telegram',
+    ];
+    
+    if (isset($source_fixes[$source])) {
+        $source = $source_fixes[$source];
+        log_utm_correction($utm_source, $source);
+    }
+    
+    return [
+        'source' => in_array($source, VALID_SOURCES) ? $source : 'direct',
+        'medium' => in_array($medium, VALID_MEDIUMS) ? $medium : 'unknown',
+    ];
+}
 ```
 
 ---
@@ -115,12 +244,13 @@ const VALIDATION_RULES = {
 | % лідів без UTM | < 10% | > 20% |
 | % невалідних UTM | < 5% | > 10% |
 | % spam/fake лідів | < 5% | > 10% |
+| % дублікатів | < 3% | > 5% |
 | Response time P1 | < 1 год | > 2 год |
 | MQL conversion rate | > 30% | < 20% |
 | SQL conversion rate | > 50% | < 30% |
 
 ---
 
-**Документ підтримується:** Marketing Team
-**Останнє оновлення:** 2025-12-15
+**Версія:** 1.0.0
+**Дата:** 11 січня 2026
 **Статус:** ✅ 100% готово

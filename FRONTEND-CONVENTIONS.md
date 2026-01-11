@@ -1,4 +1,4 @@
-# Frontend Conventions — Medici Agency
+# Frontend Conventions — Universal Guide
 
 > **Мета:** Консистентність CSS/JS коду та чітке розділення styling vs behavior.
 > **Версія:** 1.0.0
@@ -26,7 +26,9 @@
 | Lowercase + hyphens | `.blog-card` | `.blogCard`, `.BlogCard` |
 | Max 2 рівні вкладеності | `.card__header` | `.card__header__title__text` |
 
-### Приклади для Medici
+### Приклади
+
+
 
 ```css
 /* ✅ ПРАВИЛЬНО: BEM */
@@ -44,7 +46,7 @@
 .submitBtn {}
 ```
 
-### Компоненти Medici (стандартизація)
+### Стандартні компоненти
 
 ```css
 /* Navigation */
@@ -70,7 +72,7 @@
 .blog-card__excerpt {}
 .blog-card--horizontal {}
 
-/* Lead Form */
+/* Forms */
 .lead-form {}
 .lead-form__field {}
 .lead-form__label {}
@@ -113,6 +115,7 @@
 
 <script>
 	document.querySelector('.submit-btn').addEventListener('click', ...);
+	// Якщо дизайнер змінить клас → JS зламається!
 </script>
 ```
 
@@ -123,11 +126,12 @@
 <button class="lead-form__submit js-form-submit">Submit</button>
 
 <style>
-	.lead-form__submit { background: blue; }
+	.lead-form__submit { background: blue; } /* Тільки styling */
 </style>
 
 <script>
 	document.querySelector('.js-form-submit').addEventListener('click', ...);
+	// Зміна BEM класу не зламає JS!
 </script>
 ```
 
@@ -140,7 +144,7 @@
 | Descriptive | Описують behavior, не appearance |
 | Lowercase + hyphens | `js-toggle-menu`, не `jsToggleMenu` |
 
-### Стандартні hooks для Medici
+### Стандартні hooks
 
 ```html
 <!-- Forms -->
@@ -161,7 +165,7 @@
   <button class="modal__close js-modal-close"></button>
 </div>
 
-<!-- Accordions/FAQ -->
+<!-- Accordions -->
 <div class="faq-item js-accordion-item">
   <button class="faq-item__question js-accordion-trigger"></button>
   <div class="faq-item__answer js-accordion-content"></div>
@@ -185,6 +189,53 @@
 - [ ] Всі DOM selectors використовують `js-*` класи
 - [ ] `js-*` класи НЕ мають CSS правил
 - [ ] Конфігурація через `data-*` атрибути
+- [ ] Event listeners прив'язані до `js-*`, не BEM класів
+
+### HTML
+
+- [ ] Кожен інтерактивний елемент має `js-*` клас
+- [ ] BEM клас для styling
+- [ ] `js-*` клас для behavior
+- [ ] `data-*` для конфігурації
+
+---
+
+## 🚫 Заборонені практики
+
+```css
+/* ❌ ЗАБОРОНЕНО */
+
+/* 1. Styling на js-* класах */
+.js-form-submit { background: blue; }
+
+/* 2. ID selectors для styling */
+#submit-button { ... }
+
+/* 3. !important (окрім utilities) */
+.card { margin: 0 !important; }
+
+/* 4. Inline styles в HTML */
+<div style="margin-top: 20px;">
+
+/* 5. Глибока вкладеність */
+.nav .menu .item .link .icon { }
+
+/* 6. Неконсистентний naming */
+.cardTitle { }      /* camelCase */
+.Card-Title { }     /* PascalCase + hyphen */
+.card_title { }     /* snake_case */
+```
+
+---
+
+## 📊 Метрики якості
+
+| Метрика | Ціль | Alert |
+|---------|------|-------|
+| % BEM-compliant класів | > 90% | < 80% |
+| % JS selectors з `js-*` | 100% | < 100% |
+| CSS specificity max | 0,2,0 | > 0,3,0 |
+| Глибина вкладеності | ≤ 3 | > 4 |
 
 ---
 
