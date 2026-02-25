@@ -1,0 +1,270 @@
+/*
+ * Mobile Hamburger Menu — Styles
+ * ================================
+ * Структура (BEM):
+ *   .nav-header__toggle        — кнопка-бургер
+ *   .nav-header__toggle-bar    — риска бургера (×3)
+ *   .mobile-nav                — root overlay
+ *   .mobile-nav__backdrop      — напівпрозорий фон
+ *   .mobile-nav__drawer        — бічна панель
+ *   .mobile-nav__close         — кнопка закриття
+ *   .mobile-nav__list          — список пунктів
+ *   .mobile-nav__item          — пункт
+ *   .mobile-nav__link          — посилання
+ *   .mobile-nav__link--cta     — CTA-посилання (modifier)
+ *
+ * Стани (додаються через JS):
+ *   .mobile-nav--open          — меню відкрите
+ *   .nav-header__toggle--open  — бургер → «хрест»
+ *
+ * ВАЖЛИВО: js-* класи НЕ мають CSS-правил (згідно FRONTEND-CONVENTIONS.md)
+ */
+
+/* =============================================================================
+   CSS Custom Properties
+   ============================================================================= */
+:root {
+  --mobile-menu-width: 280px;
+  --mobile-menu-bg: #ffffff;
+  --mobile-menu-backdrop: rgba(0, 0, 0, 0.5);
+  --mobile-menu-transition: 0.3s ease;
+  --mobile-menu-z-index: 9999;
+  --mobile-menu-toggle-size: 44px;   /* min touch target */
+  --mobile-menu-bar-color: #1a1a1a;
+  --mobile-menu-bar-width: 24px;
+  --mobile-menu-bar-height: 2px;
+  --mobile-menu-bar-gap: 6px;
+  --mobile-menu-link-color: #1a1a1a;
+  --mobile-menu-link-hover: #0057b7;
+  --mobile-menu-cta-bg: #0057b7;
+  --mobile-menu-cta-color: #ffffff;
+}
+
+/* =============================================================================
+   #mobile-menu-toggle — Hamburger Button
+   ============================================================================= */
+#mobile-menu-toggle,
+.nav-header__toggle {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--mobile-menu-bar-gap);
+  width: var(--mobile-menu-toggle-size);
+  height: var(--mobile-menu-toggle-size);
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+
+  /* Плавна зміна стану */
+  transition: background-color 0.2s ease;
+}
+
+#mobile-menu-toggle:hover,
+.nav-header__toggle:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+#mobile-menu-toggle:focus-visible,
+.nav-header__toggle:focus-visible {
+  outline: 2px solid var(--mobile-menu-link-hover);
+  outline-offset: 2px;
+}
+
+/* Риски бургера */
+.nav-header__toggle-bar {
+  display: block;
+  width: var(--mobile-menu-bar-width);
+  height: var(--mobile-menu-bar-height);
+  background-color: var(--mobile-menu-bar-color);
+  border-radius: 2px;
+  transform-origin: center;
+  transition:
+    transform var(--mobile-menu-transition),
+    opacity var(--mobile-menu-transition);
+}
+
+/* Анімація бургер → хрест при відкритому меню */
+.nav-header__toggle--open .nav-header__toggle-bar:nth-child(1) {
+  transform: translateY(calc(var(--mobile-menu-bar-gap) + var(--mobile-menu-bar-height))) rotate(45deg);
+}
+
+.nav-header__toggle--open .nav-header__toggle-bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.nav-header__toggle--open .nav-header__toggle-bar:nth-child(3) {
+  transform: translateY(calc(-1 * (var(--mobile-menu-bar-gap) + var(--mobile-menu-bar-height)))) rotate(-45deg);
+}
+
+/* =============================================================================
+   #mobile-nav — Overlay Root
+   ============================================================================= */
+#mobile-nav,
+.mobile-nav {
+  position: fixed;
+  inset: 0;
+  z-index: var(--mobile-menu-z-index);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Відкритий стан — додається JS */
+#mobile-nav.mobile-nav--open,
+.mobile-nav.mobile-nav--open {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* =============================================================================
+   .mobile-nav__backdrop — Напівпрозорий фон
+   ============================================================================= */
+.mobile-nav__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--mobile-menu-backdrop);
+  opacity: 0;
+  transition: opacity var(--mobile-menu-transition);
+}
+
+.mobile-nav--open .mobile-nav__backdrop {
+  opacity: 1;
+}
+
+/* =============================================================================
+   .mobile-nav__drawer — Бічна панель
+   ============================================================================= */
+.mobile-nav__drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--mobile-menu-width);
+  max-width: 90vw;
+  background-color: var(--mobile-menu-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
+
+  /* Slide-in справа */
+  transform: translateX(100%);
+  transition: transform var(--mobile-menu-transition);
+}
+
+.mobile-nav--open .mobile-nav__drawer {
+  transform: translateX(0);
+}
+
+/* =============================================================================
+   .mobile-nav__close — Кнопка закриття
+   ============================================================================= */
+.mobile-nav__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  width: var(--mobile-menu-toggle-size);
+  height: var(--mobile-menu-toggle-size);
+  margin-bottom: 1.5rem;
+  padding: 0;
+  font-size: 1.75rem;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--mobile-menu-bar-color);
+  transition: background-color 0.2s ease;
+}
+
+.mobile-nav__close:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.mobile-nav__close:focus-visible {
+  outline: 2px solid var(--mobile-menu-link-hover);
+  outline-offset: 2px;
+}
+
+/* =============================================================================
+   .mobile-nav__list / __item / __link — Навігація
+   ============================================================================= */
+.mobile-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-nav__item {
+  margin: 0;
+}
+
+.mobile-nav__link {
+  display: block;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mobile-menu-link-color);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.mobile-nav__link:hover {
+  background-color: rgba(0, 87, 183, 0.08);
+  color: var(--mobile-menu-link-hover);
+}
+
+.mobile-nav__link:focus-visible {
+  outline: 2px solid var(--mobile-menu-link-hover);
+  outline-offset: 2px;
+}
+
+/* CTA-посилання */
+.mobile-nav__link--cta {
+  margin-top: 1rem;
+  background-color: var(--mobile-menu-cta-bg);
+  color: var(--mobile-menu-cta-color);
+  text-align: center;
+  border-radius: 6px;
+}
+
+.mobile-nav__link--cta:hover {
+  background-color: #004a9f;
+  color: var(--mobile-menu-cta-color);
+}
+
+/* =============================================================================
+   Reduced motion
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .nav-header__toggle-bar,
+  .mobile-nav__backdrop,
+  .mobile-nav__drawer {
+    transition: none;
+  }
+}
+
+/* =============================================================================
+   Показувати кнопку тільки на мобільних
+   ============================================================================= */
+@media (min-width: 1024px) {
+  #mobile-menu-toggle,
+  .nav-header__toggle {
+    display: none;
+  }
+
+  #mobile-nav,
+  .mobile-nav {
+    display: none;
+  }
+}
