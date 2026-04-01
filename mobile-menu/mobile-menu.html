@@ -1,0 +1,74 @@
+<!--
+  Mobile Hamburger Menu — Standalone Component
+  =============================================
+  Структура:
+    - #mobile-menu-toggle  — кнопка-бургер (відкриває/закриває меню)
+    - #mobile-nav          — overlay з навігацією
+  Підключення:
+    <link rel="stylesheet" href="mobile-menu.css">
+    <script src="mobile-menu.js" defer></script>
+-->
+
+<!-- =============================================
+     HAMBURGER BUTTON (розміщується у хедері)
+     ============================================= -->
+<button
+  id="mobile-menu-toggle"
+  class="nav-header__toggle js-nav-toggle"
+  type="button"
+  aria-label="Відкрити меню"
+  aria-expanded="false"
+  aria-controls="mobile-nav"
+>
+  <span class="nav-header__toggle-bar"></span>
+  <span class="nav-header__toggle-bar"></span>
+  <span class="nav-header__toggle-bar"></span>
+</button>
+
+<!-- =============================================
+     MOBILE NAV OVERLAY
+     ============================================= -->
+<div
+  id="mobile-nav"
+  class="mobile-nav js-mobile-nav"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Мобільна навігація"
+  hidden
+>
+  <!-- Backdrop — клік закриває меню -->
+  <div class="mobile-nav__backdrop js-nav-backdrop" aria-hidden="true"></div>
+
+  <!-- Drawer (панель) -->
+  <nav class="mobile-nav__drawer" aria-label="Основне меню">
+    <!-- Кнопка закриття -->
+    <button
+      class="mobile-nav__close js-nav-close"
+      type="button"
+      aria-label="Закрити меню"
+    >
+      <span aria-hidden="true">&times;</span>
+    </button>
+
+    <!-- Навігаційні посилання -->
+    <ul class="mobile-nav__list">
+      <li class="mobile-nav__item">
+        <a href="/" class="mobile-nav__link">Головна</a>
+      </li>
+      <li class="mobile-nav__item">
+        <a href="/about" class="mobile-nav__link">Про нас</a>
+      </li>
+      <li class="mobile-nav__item">
+        <a href="/services" class="mobile-nav__link">Послуги</a>
+      </li>
+      <li class="mobile-nav__item">
+        <a href="/blog" class="mobile-nav__link">Блог</a>
+      </li>
+      <li class="mobile-nav__item">
+        <a href="/contact" class="mobile-nav__link mobile-nav__link--cta">
+          Контакти
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
